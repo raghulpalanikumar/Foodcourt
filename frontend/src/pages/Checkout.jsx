@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { FiTruck, FiLock, FiCheck, FiDollarSign, FiCreditCard, FiShield, FiShoppingCart } from 'react-icons/fi';
+import { FiTruck, FiLock, FiCheck, FiDollarSign, FiCreditCard, FiShield, FiShoppingCart, FiLogOut } from 'react-icons/fi';
 import { useCart } from '../context/cartContext';
 import { useAuth } from '../context/authContext';
 import { api } from '../utils/api';
@@ -9,7 +9,7 @@ import Image from '../components/Image';
 
 const Checkout = () => {
   const { cartItems, getCartTotal, clearCart } = useCart();
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const [loading, setLoading] = useState(false);
@@ -282,54 +282,68 @@ const Checkout = () => {
                 Thank you for your purchase. You will receive an order confirmation email shortly.
                 {paymentMethod === 'cod' && ' Payment will be collected upon delivery.'}
               </p>
-              <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center', flexWrap: 'wrap' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', alignItems: 'center' }}>
+                <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center', flexWrap: 'wrap', width: '100%' }}>
+                  <button
+                    onClick={() => navigate('/products')}
+                    className="btn btn-primary"
+                    style={{
+                      background: '#0066cc',
+                      border: 'none',
+                      color: 'white',
+                      padding: '0.875rem 2rem',
+                      borderRadius: '12px',
+                      fontWeight: '600',
+                      boxShadow: '0 8px 20px rgba(0, 102, 204, 0.2)',
+                      transition: 'all 0.3s ease',
+                      flex: '1 1 auto',
+                      maxWidth: '220px'
+                    }}
+                  >
+                    Place Another Order
+                  </button>
+                  <button
+                    onClick={() => navigate('/dashboard', { state: { activeTab: 'orders' } })}
+                    className="btn btn-secondary"
+                    style={{
+                      background: '#ffffff',
+                      border: '2px solid #0066cc',
+                      color: '#0066cc',
+                      padding: '0.875rem 2rem',
+                      borderRadius: '12px',
+                      fontWeight: '600',
+                      boxShadow: '0 8px 20px rgba(0, 102, 204, 0.1)',
+                      transition: 'all 0.3s ease',
+                      flex: '1 1 auto',
+                      maxWidth: '220px'
+                    }}
+                  >
+                    View All Orders
+                  </button>
+                </div>
+
                 <button
-                  onClick={() => navigate('/dashboard')}
-                  className="btn btn-primary"
+                  onClick={() => {
+                    logout();
+                    navigate('/');
+                  }}
                   style={{
-                    background: '#0066cc',
+                    background: 'none',
                     border: 'none',
-                    color: 'white',
-                    padding: '0.875rem 2rem',
-                    borderRadius: '12px',
-                    fontWeight: '600',
-                    boxShadow: '0 8px 20px rgba(0, 102, 204, 0.2)',
-                    transition: 'all 0.3s ease'
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.transform = 'translateY(-3px)';
-                    e.currentTarget.style.boxShadow = '0 12px 30px rgba(102, 126, 234, 0.4)';
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.transform = 'translateY(0)';
-                    e.currentTarget.style.boxShadow = '0 8px 20px rgba(102, 126, 234, 0.3)';
+                    color: '#ef4444',
+                    padding: '0.5rem 1rem',
+                    borderRadius: '8px',
+                    fontWeight: '500',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.5rem',
+                    marginTop: '0.5rem',
+                    fontSize: '0.9rem'
                   }}
                 >
-                  View Orders
-                </button>
-                <button
-                  onClick={() => navigate('/products')}
-                  className="btn btn-secondary"
-                  style={{
-                    background: '#ffffff',
-                    border: '2px solid #0066cc',
-                    color: '#0066cc',
-                    padding: '0.875rem 2rem',
-                    borderRadius: '12px',
-                    fontWeight: '600',
-                    boxShadow: '0 8px 20px rgba(0, 102, 204, 0.1)',
-                    transition: 'all 0.3s ease'
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.transform = 'translateY(-3px)';
-                    e.currentTarget.style.boxShadow = '0 12px 30px rgba(79, 172, 254, 0.4)';
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.transform = 'translateY(0)';
-                    e.currentTarget.style.boxShadow = '0 8px 20px rgba(79, 172, 254, 0.3)';
-                  }}
-                >
-                  Continue Shopping
+                  <FiLogOut />
+                  Exit / Logout
                 </button>
               </div>
             </div>

@@ -95,6 +95,10 @@ const Header = () => {
               <FiPackage />
               <span>Menu</span>
             </Link>
+            <Link to="/book-table" className={`nav-link ${isActive('/book-table') ? 'active' : ''}`}>
+              <span style={{ fontSize: '1.2rem' }}>📅</span>
+              <span>Reserve Table</span>
+            </Link>
             <div className="status-indicator">
               <span className="status-dot"></span>
               <span className="status-text">Open Now</span>

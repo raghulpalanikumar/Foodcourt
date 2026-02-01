@@ -50,6 +50,9 @@ app.use('/api/analytics', analyticsRoutes);
 app.use('/api/chatbot', chatbotRoutes);
 app.use('/api/reviews', reviewRoutes);
 app.use('/api/payments', paymentRoutes);
+console.log('Mounting /api/reservations routes...');
+app.use('/api/reservations', require('./routes/reservations'));
+
 
 // Error Handler (must be last)
 app.use(errorHandler);
