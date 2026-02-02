@@ -6,58 +6,84 @@ const orderSchema = new mongoose.Schema({
     ref: 'User',
     required: true
   },
-  items: [{
-    foodId: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'Product',
-      required: true
-    },
-    foodName: {
-      type: String,
-      required: true
-    },
-    price: {
-      type: Number,
-      required: true
-    },
-    quantity: {
-      type: Number,
-      required: true,
-      min: [1, 'Quantity must be at least 1']
+
+  // ✅ Order items
+  items: [
+    {
+      foodId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Product',
+        required: true
+      },
+      foodName: {
+        type: String,
+        required: true
+      },
+      price: {
+        type: Number,
+        required: true
+      },
+      quantity: {
+        type: Number,
+        required: true,
+        min: 1
+      }
     }
-  }],
+  ],
+
+  // ✅ TOTAL ORDER FIELDS (NOT inside items)
   totalAmount: {
     type: Number,
     required: true,
-    min: [0, 'Total amount cannot be negative']
+    min: 0
   },
+
+  // 🧠 ETA — ORDER LEVEL
+  estimatedWait: {
+    type: Number,
+    default: 0
+  },
+
+  // 🍽️ ALTERNATE FOOD — ORDER LEVEL
+  alternateFood: {
+    name: String,
+    id: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Product'
+    }
+  },
+
   orderStatus: {
     type: String,
     enum: ['Preparing', 'Ready', 'OutForDelivery', 'Delivered', 'Cancelled'],
     default: 'Preparing'
   },
+
   deliveryType: {
     type: String,
     enum: ['FoodCourt', 'Classroom'],
-    required: [true, 'Please specify if pickup is at FoodCourt or Classroom delivery'],
     default: 'FoodCourt'
   },
+
   deliveryDetails: {
-    tableNumber: { type: String },
-    classroomInfo: { type: String },
-    department: { type: String },
-    block: { type: String }
+    tableNumber: String,
+    classroomInfo: String,
+    department: String,
+    block: String
   },
+
   paymentMethod: {
     type: String,
     enum: ['CASH', 'ONLINE', 'WALLETPAY'],
     default: 'CASH'
   },
+
   paymentStatus: {
     type: String,
     enum: ['Pending', 'Paid', 'Failed', 'Refunded'],
     default: 'Pending'
   },
+
   tokenNumber: {
     type: String,
     unique: true
@@ -66,8 +92,8 @@ const orderSchema = new mongoose.Schema({
   timestamps: true
 });
 
-// Generate a random token number for the order before saving
-orderSchema.pre('save', async function (next) {
+// 🔢 Auto-generate token number
+orderSchema.pre('save', function (next) {
   if (!this.tokenNumber) {
     this.tokenNumber = 'KEC-' + Math.floor(1000 + Math.random() * 9000);
   }

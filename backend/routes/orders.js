@@ -1,4 +1,3 @@
-
 const express = require('express');
 const { body, validationResult } = require('express-validator');
 const Order = require('../models/Order');
@@ -11,7 +10,7 @@ const router = express.Router();
 router.get('/', protect, async (req, res) => {
   try {
     const orders = await Order.find({ user: req.user._id })
-      .populate('products.product', 'name price image')
+      
       .populate('user', 'name email')
       .sort({ createdAt: -1 });
 
@@ -31,6 +30,8 @@ router.get('/', protect, async (req, res) => {
       products: order.products, // Keep both for compatibility
       total: order.total,
       status: order.status || 'pending',
+      estimatedWait: order.estimatedWait, // ETA
+      alternateFood: order.alternateFood, // Recommended alternative
       shippingAddress: order.shippingAddress
     }));
 
@@ -63,7 +64,7 @@ router.get('/all', protect, async (req, res) => {
     }
 
     const orders = await Order.find(filter)
-      .populate('products.product', 'name price image')
+      
       .populate('user', 'name email')
       .sort({ createdAt: -1 });
 
@@ -83,6 +84,8 @@ router.get('/all', protect, async (req, res) => {
       products: order.products,
       total: order.total,
       status: order.status || 'pending',
+      estimatedWait: order.estimatedWait, // ETA
+      alternateFood: order.alternateFood, // Recommended alternative
       shippingAddress: order.shippingAddress
     }));
 
@@ -187,7 +190,7 @@ router.put('/:id/status', protect, [
 router.get('/:id', protect, async (req, res) => {
   try {
     const order = await Order.findById(req.params.id)
-      .populate('products.product', 'name price image')
+      
       .populate('user', 'name email');
 
     if (!order) {
@@ -224,6 +227,8 @@ router.get('/:id', protect, async (req, res) => {
       products: order.products,
       total: order.total,
       status: order.status || 'pending',
+      estimatedWait: order.estimatedWait, // ETA
+      alternateFood: order.alternateFood, // Recommended alternative
       shippingAddress: order.shippingAddress
     };
 
@@ -275,6 +280,7 @@ router.post('/', protect, [
     // Validate products and calculate total
     let total = 0;
     const orderProducts = [];
+    let totalQuantity = 0; // 🔥 Track total quantity for ETA calculation
 
     console.log(`Processing ${products.length} products...`);
     for (let i = 0; i < products.length; i++) {
@@ -309,6 +315,7 @@ router.post('/', protect, [
       });
 
       total += product.price * item.quantity;
+      totalQuantity += item.quantity; // 🔥 Track total items for ETA
 
       // Update product stock
       product.stock -= item.quantity;
@@ -317,18 +324,82 @@ router.post('/', protect, [
       console.log(`Stock updated for ${product.name}.`);
     }
 
+    // ===== 🧠 SMART ETA LOGIC =====
+    let estimatedWait = 15; // Base time in minutes
+
+    // Add time based on quantity (3 mins per item)
+    estimatedWait += totalQuantity * 3;
+
+    // Peak hour logic (lunch rush)
+    const hour = new Date().getHours();
+    if (hour >= 12 && hour <= 14) {
+      estimatedWait += 5; // Add 5 mins during lunch rush
+    }
+
+    console.log(`📊 ETA Calculation: Base=15 + Quantity(${totalQuantity}x3)=${totalQuantity*3} + PeakHour=${hour >= 12 && hour <= 14 ? 5 : 0} = ${estimatedWait} mins`);
+
+    // ===== 🍽️ SMART ALTERNATE FOOD RECOMMENDATION =====
+    let alternateFood = null;
+
+    // Get the first product from the order
+    const firstProduct = await Product.findById(products[0].product);
+
+    if (firstProduct) {
+      console.log(`🔍 Finding alternatives for: ${firstProduct.name} (Category: ${firstProduct.category})`);
+      
+      // Find similar products (same category, different item, in stock)
+      const alternatives = await Product.find({
+        category: firstProduct.category,
+        _id: { $ne: firstProduct._id }, // Exclude the ordered product
+        stock: { $gt: 0 } // Only in-stock items
+      }).limit(3);
+
+      if (alternatives.length > 0) {
+        // Pick a random alternative from the top 3
+        alternateFood = alternatives[Math.floor(Math.random() * alternatives.length)];
+        console.log(`✅ Alternate food selected: ${alternateFood.name}`);
+      } else {
+        console.log(`ℹ️ No alternatives found for category: ${firstProduct.category}`);
+      }
+    }
+
     console.log('Creating order in database...');
+    
+    // 🔥 CRITICAL FIX: Include totalAmount and paymentMethod in order creation
     const order = await Order.create({
       user: req.user._id,
       products: orderProducts,
+      
+      // 🔥 REQUIRED: totalAmount from frontend (or calculated total as fallback)
+      totalAmount: req.body.totalAmount ? Number(req.body.totalAmount) : total,
+      total: req.body.totalAmount ? Number(req.body.totalAmount) : total, // For backward compatibility
+      
+      // 🔥 REQUIRED: paymentMethod from frontend
+      paymentMethod: req.body.paymentMethod || 'CASH',
+      
+      // 🔥 REQUIRED: paymentStatus based on payment method
+      paymentStatus: req.body.paymentMethod === 'ONLINE' ? 'Paid' : 'Pending',
+      
+      // 🔥 ETA: Dynamic estimated wait time
+      estimatedWait, // Smart calculation based on quantity + peak hours
+      
+      // 🍽️ ALTERNATE FOOD: Intelligent recommendation
+      alternateFood: alternateFood
+        ? { name: alternateFood.name, id: alternateFood._id }
+        : null,
+      
       shippingAddress,
-      total,
+      
       status: 'pending' // Set default status
     });
 
     console.log('Order created, ID:', order._id);
+    console.log('Order totalAmount:', order.totalAmount);
+    console.log('Order paymentMethod:', order.paymentMethod);
+    console.log('Order estimatedWait:', order.estimatedWait, 'minutes');
+    console.log('Order alternateFood:', order.alternateFood);
     console.log('Populating order details...');
-    await order.populate('products.product', 'name');
+    
     await order.populate('user', 'name email');
     console.log('Order populated. User email:', order.user?.email);
 
@@ -346,8 +417,13 @@ router.post('/', protect, [
       createdAt: order.createdAt,
       items: order.products,
       products: order.products,
-      total: order.total,
+      total: order.total || order.totalAmount,
+      totalAmount: order.totalAmount,
       status: order.status,
+      paymentMethod: order.paymentMethod,
+      paymentStatus: order.paymentStatus,
+      estimatedWait: order.estimatedWait, // 🔥 ETA for frontend
+      alternateFood: order.alternateFood, // 🍽️ Recommended alternative
       shippingAddress: order.shippingAddress
     };
 
@@ -369,7 +445,7 @@ router.post('/', protect, [
             orderId: order._id.toString().slice(-8),
             orderDate: order.createdAt,
             items: order.products,
-            total: order.total,
+            total: order.totalAmount || order.total,
             shippingAddress: order.shippingAddress
           }
         );

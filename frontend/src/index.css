@@ -4163,3 +4163,209 @@ body {
 .w-6 {
   width: 1.5rem;
 }
+
+.queue-intel-card {
+  background: #f8fafc;
+  padding: 12px;
+  margin: 10px 0;
+  border-radius: 10px;
+  border-left: 4px solid #2563eb;
+  font-size: 0.9rem;
+}
+
+.queue-intel-card h4 {
+  margin-bottom: 6px;
+  font-weight: 600;
+}
+
+.status.ORDER_NOW {
+  color: #16a34a;
+}
+
+.status.NORMAL {
+  color: #f59e0b;
+}
+
+.status.ORDER_LATER {
+  color: #dc2626;
+}
+
+.alt-box {
+  margin-top: 6px;
+  background: #e0f2fe;
+  padding: 6px;
+  border-radius: 6px;
+}
+/* ========================================
+   IMPROVED HEADER ACTIONS STYLING
+   Add these styles to your header.css file
+   ======================================== */
+
+/* Header Actions Container */
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem !important;
+}
+
+/* Action Buttons - Cart and User */
+.action-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  padding: 0.75rem 1.25rem;
+  background: var(--white);
+  border: 2px solid var(--primary-light);
+  border-radius: var(--radius-lg);
+  color: var(--primary);
+  font-weight: 600;
+  font-size: 0.9375rem;
+  cursor: pointer;
+  transition: all var(--transition-base);
+  text-decoration: none;
+  position: relative;
+  min-width: 120px;
+  justify-content: center;
+}
+
+.action-btn:hover {
+  background: var(--primary-50);
+  border-color: var(--primary);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-primary);
+}
+
+.action-btn svg {
+  font-size: 1.25rem;
+}
+
+.action-label {
+  font-weight: 600;
+  letter-spacing: 0.01em;
+}
+
+.action-badge {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  background: var(--danger);
+  color: var(--white);
+  font-size: 0.75rem;
+  font-weight: 700;
+  min-width: 22px;
+  height: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-full);
+  padding: 0 0.375rem;
+  box-shadow: var(--shadow-danger);
+  border: 2px solid var(--white);
+}
+
+/* User Button Specific Styling - Larger background circle */
+.user-btn {
+  padding: 0.75rem 1.5rem;
+  min-width: 180px;
+  width: auto;
+}
+
+.user-btn .action-label {
+  max-width: none;
+  white-space: nowrap;
+}
+
+/* Auth Buttons - Login and Register */
+.auth-buttons {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.btn-login,
+.btn-register {
+  padding: 0.75rem 1.5rem;
+  border-radius: var(--radius-lg);
+  font-weight: 600;
+  font-size: 0.9375rem;
+  cursor: pointer;
+  transition: all var(--transition-base);
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 100px;
+}
+
+.btn-login {
+  background: transparent;
+  color: var(--primary);
+  border: 2px solid var(--primary);
+}
+
+.btn-login:hover {
+  background: var(--primary-50);
+  border-color: var(--primary-dark);
+  transform: translateY(-2px);
+}
+
+.btn-register {
+  background: var(--primary);
+  color: var(--white);
+  border: 2px solid var(--primary);
+}
+
+.btn-register:hover {
+  background: var(--primary-dark);
+  border-color: var(--primary-dark);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-primary);
+}
+
+/* Mobile responsive adjustments */
+@media (max-width: 768px) {
+  .header-actions {
+    gap: 0.75rem !important;
+  }
+  
+  .action-btn {
+    padding: 0.625rem 1rem;
+    min-width: 100px;
+    font-size: 0.875rem;
+  }
+  
+  .user-btn {
+    padding: 0.625rem 1.25rem;
+    min-width: 150px;
+    width: auto;
+  }
+  
+  .action-btn svg {
+    font-size: 1.125rem;
+  }
+  
+  .btn-login,
+  .btn-register {
+    padding: 0.625rem 1.25rem;
+    font-size: 0.875rem;
+    min-width: 85px;
+  }
+}
+
+@media (max-width: 480px) {
+  .header-actions {
+    gap: 0.5rem !important;
+  }
+  
+  .action-btn {
+    padding: 0.5rem 0.875rem;
+    min-width: 85px;
+    font-size: 0.8125rem;
+  }
+  
+  .user-btn {
+    padding: 0.5rem 1rem;
+    min-width: 130px;
+    width: auto;
+  }
+}

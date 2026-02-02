@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { FiTruck, FiLock, FiCheck, FiDollarSign, FiCreditCard, FiShield, FiShoppingCart } from 'react-icons/fi';
+import { FiTruck, FiLock, FiCheck, FiDollarSign, FiCreditCard, FiShield, FiShoppingCart, FiClock } from 'react-icons/fi';
 import { useCart } from '../context/cartContext';
 import { useAuth } from '../context/authContext';
 import { api } from '../utils/api';
@@ -15,6 +15,9 @@ const Checkout = () => {
   const [loading, setLoading] = useState(false);
   const [orderPlaced, setOrderPlaced] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState('cod');
+  
+  // 🔥 NEW: State for Smart Queue Intelligence
+  const [orderIntel, setOrderIntel] = useState(null);
 
   // Check for Buy Now item
   const buyNowItem = location.state?.buyNowItem;
@@ -166,6 +169,12 @@ const Checkout = () => {
       const response = await api.post('/orders', orderData);
       console.log('Order created:', response.data);
 
+      // 🔥 Capture ETA + alternate food from Razorpay order
+      setOrderIntel({
+        estimatedWait: response.data.data?.order?.estimatedWait || null,
+        alternateFood: response.data.data?.order?.alternateFood || null
+      });
+
       // Clear cart and show success
       // Clear cart only if it's not a direct buy now
       if (!isBuyNow) {
@@ -198,27 +207,42 @@ const Checkout = () => {
       if (paymentMethod === 'razorpay') {
         await handleRazorpayPayment();
       } else if (paymentMethod === 'cod') {
-        // Handle COD order
+        // ✅ CASH ON DELIVERY - Fixed payload to match backend schema
         const orderData = {
-          items: checkoutItems.map((item) => ({
-            foodId: item.productId || item.id || item._id,
-            foodName: item.name,
+          products: checkoutItems.map((item) => ({
+            product: item.productId || item.id || item._id,
+            name: item.name,
             price: item.price,
             quantity: item.quantity || 1
           })),
+
+          totalAmount: checkoutItems.reduce(
+            (sum, item) => sum + item.price * (item.quantity || 1),
+            0
+          ),
+
           paymentMethod: 'CASH',
-          deliveryType: formData.deliveryType,
-          deliveryDetails: {
-            tableNumber: formData.tableNumber,
-            classroomInfo: formData.classroomInfo,
-            department: formData.department,
-            block: formData.block
-          },
-          totalAmount: total
+
+          shippingAddress: {
+            address:
+              formData.deliveryType === 'FoodCourt'
+                ? 'Food Court'
+                : formData.classroomInfo || 'Classroom',
+            city: 'Campus',
+            postalCode: '000000',
+            country: 'India'
+          }
         };
 
-        const response = await api.createOrder(orderData);
-        console.log('COD Order created:', response);
+        const response = await api.post('/orders', orderData);
+        console.log('✅ COD Order created:', response.data);
+        
+        // 🔥 Capture ETA + alternate food from backend response
+        setOrderIntel({
+          estimatedWait: response.data.data?.order?.estimatedWait || null,
+          alternateFood: response.data.data?.order?.alternateFood || null
+        });
+        
         if (!isBuyNow) {
           clearCart();
         }
@@ -226,7 +250,7 @@ const Checkout = () => {
       }
       // For Razorpay, the payment flow is handled by the RazorpayButton component
     } catch (error) {
-      console.error('Order creation failed:', error);
+      console.error('❌ Order creation failed:', error);
       alert('There was an issue creating your order. Please try again.');
     } finally {
       setLoading(false);
@@ -282,6 +306,75 @@ const Checkout = () => {
                 Thank you for your purchase. You will receive an order confirmation email shortly.
                 {paymentMethod === 'cod' && ' Payment will be collected upon delivery.'}
               </p>
+
+              {/* 🔥 SMART QUEUE INTELLIGENCE - Show after order placement */}
+              {orderIntel && (
+                <div style={{
+                  background: 'linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%)',
+                  border: '2px solid #0066cc',
+                  borderRadius: '12px',
+                  padding: '1.5rem',
+                  marginBottom: '2rem',
+                  textAlign: 'left'
+                }}>
+                  <h4 style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.5rem',
+                    color: '#0066cc',
+                    marginBottom: '1rem',
+                    fontSize: '1.125rem',
+                    fontWeight: '600'
+                  }}>
+                    <FiClock size={20} /> Smart Queue Intelligence
+                  </h4>
+
+                  {orderIntel.estimatedWait && (
+                    <p style={{
+                      fontSize: '1rem',
+                      color: '#1f2937',
+                      marginBottom: '0.75rem'
+                    }}>
+                      <strong>Estimated Wait Time:</strong>
+                      <span style={{
+                        color: '#0066cc',
+                        fontSize: '1.25rem',
+                        fontWeight: '700',
+                        marginLeft: '0.5rem'
+                      }}>
+                        {orderIntel.estimatedWait} minutes
+                      </span>
+                    </p>
+                  )}
+
+                  {orderIntel.alternateFood && (
+                    <div style={{
+                      background: '#ffffff',
+                      border: '1px solid #e5e7eb',
+                      borderRadius: '8px',
+                      padding: '1rem',
+                      marginTop: '1rem'
+                    }}>
+                      <p style={{
+                        fontSize: '0.875rem',
+                        color: '#6b7280',
+                        marginBottom: '0.5rem'
+                      }}>
+                        ⚡ Faster Option Available:
+                      </p>
+                      <p style={{
+                        fontSize: '1rem',
+                        color: '#0066cc',
+                        fontWeight: '600',
+                        margin: 0
+                      }}>
+                        {orderIntel.alternateFood.name}
+                      </p>
+                    </div>
+                  )}
+                </div>
+              )}
+
               <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center', flexWrap: 'wrap' }}>
                 <button
                   onClick={() => navigate('/dashboard')}

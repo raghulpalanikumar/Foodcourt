@@ -55,18 +55,23 @@ const Header = () => {
 
   return (
     <header className="modern-header">
-      <div className="header-container">
-        <div className="header-content">
-          {/* Logo */}
-          <Link to="/" className="header-logo">
-            <div className="logo-wrapper">
-              <span className="logo-icon">🍽️</span>
-              <div className="logo-text-wrapper">
-                <span className="logo-text">KEC Food Court</span>
-                <span className="logo-tagline">Fueling Engineers</span>
-              </div>
-            </div>
-          </Link>
+  <div className="header-container">
+    <div className="header-content">
+      {/* Logo */}
+      <Link to="/" className="header-logo">
+        <div className="logo-wrapper">
+          <img
+            src="/logo.png"
+            alt="KEC Food Court"
+            className="logo-image"
+          />
+          <div className="logo-text-wrapper">
+            <span className="logo-text">KEC Food Court</span>
+            <span className="logo-tagline">Fueling Engineers</span>
+          </div>
+        </div>
+      </Link>
+
 
           {/* Search Bar - Desktop */}
           <form onSubmit={handleSearch} className="header-search-form">
