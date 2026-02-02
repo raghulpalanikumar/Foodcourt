@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import {
   FiUser, FiShoppingCart, FiHeart, FiPackage,
   FiEdit, FiEye, FiMessageSquare, FiStar, FiLogOut, FiSettings
@@ -22,7 +22,8 @@ const UserDashboard = () => {
   const { getCartItemsCount } = useCart();
   const { wishlist } = useWishlist();
 
-  const [activeTab, setActiveTab] = useState('overview'); // overview, profile, orders, reviews
+  const location = useLocation();
+  const [activeTab, setActiveTab] = useState(location.state?.activeTab || 'overview'); // overview, profile, orders, reviews
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState(false);

@@ -26,6 +26,7 @@ import ProductListing from './pages/ProductListing';
 import ComparePage from './pages/ComparePage';
 import Chatbot from './components/Chatbot';
 import SimpleChatbot from './components/SimpleChatbot';
+import TableReservation from './pages/TableReservation';
 
 // Role selection component
 const RoleSelector = ({ onRoleSelect }) => {
@@ -232,6 +233,14 @@ function AppContent({ selectedRole }) {
               element={
                 <ProtectedRoute>
                   <UserDashboard />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/book-table"
+              element={
+                <ProtectedRoute>
+                  <TableReservation />
                 </ProtectedRoute>
               }
             />

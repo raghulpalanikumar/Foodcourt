@@ -115,6 +115,8 @@ const Image = React.memo(({
           }
         }}
         loading="eager"
+        referrerPolicy="no-referrer"
+        crossOrigin="anonymous"
         {...props}
       />
       {isLoading && (

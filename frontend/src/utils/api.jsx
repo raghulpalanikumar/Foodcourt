@@ -1,7 +1,7 @@
 import axios from "axios";
 
 // Create a single axios instance with base URL
-const API = axios.create({ 
+const API = axios.create({
   baseURL: "http://localhost:5000/api",
   timeout: 10000
 });
@@ -16,7 +16,7 @@ API.interceptors.request.use((req) => {
     // If localStorage is not available, set token to null
     token = null;
   }
-  
+
   if (token) req.headers.Authorization = `Bearer ${token}`;
   return req;
 });
@@ -26,39 +26,39 @@ const extractProducts = (data) => {
   console.log('Extracting products from:', data);
   console.log('Data type:', typeof data);
   console.log('Is array:', Array.isArray(data));
-  
+
   // If it's already an array, return it
   if (Array.isArray(data)) {
     console.log('Data is array, returning directly');
     return data;
   }
-  
+
   // If it's null or undefined
   if (!data) {
     console.log('Data is null/undefined, returning empty array');
     return [];
   }
-  
+
   // If it's not an object, we can't extract from it
   if (typeof data !== 'object') {
     console.log('Data is not object, returning empty array');
     return [];
   }
-  
+
   console.log('Object keys:', Object.keys(data));
-  
+
   // Handle your specific case: { success: true, data: { products: [...] } }
   if (data.success && data.data && Array.isArray(data.data.products)) {
     console.log('Found products at data.data.products');
     return data.data.products;
   }
-  
+
   // Handle case without success flag: { data: { products: [...] } }
   if (data.data && Array.isArray(data.data.products)) {
     console.log('Found products at data.data.products (no success flag)');
     return data.data.products;
   }
-  
+
   // Try common property names for products array
   const productKeys = ['products', 'data', 'items', 'result', 'docs', 'product'];
   for (const key of productKeys) {
@@ -67,7 +67,7 @@ const extractProducts = (data) => {
       return data[key];
     }
   }
-  
+
   // Look for nested objects that might contain arrays
   for (const [key, value] of Object.entries(data)) {
     if (value && typeof value === 'object' && !Array.isArray(value)) {
@@ -80,7 +80,7 @@ const extractProducts = (data) => {
       }
     }
   }
-  
+
   // Look for any array in the object
   for (const [key, value] of Object.entries(data)) {
     if (Array.isArray(value)) {
@@ -88,7 +88,7 @@ const extractProducts = (data) => {
       return value;
     }
   }
-  
+
   // If no arrays found, return empty array
   console.log('No arrays found in object, returning empty array');
   return [];
@@ -97,32 +97,32 @@ const extractProducts = (data) => {
 // Smart user extractor function (similar to products)
 const extractUsers = (data) => {
   console.log('Extracting users from:', data);
-  
+
   // If it's already an array, return it
   if (Array.isArray(data)) {
     return data;
   }
-  
+
   // If it's null or undefined
   if (!data) {
     return [];
   }
-  
+
   // If it's not an object, we can't extract from it
   if (typeof data !== 'object') {
     return [];
   }
-  
+
   // Handle your backend response: { success: true, data: [...] }
   if (data.success && Array.isArray(data.data)) {
     return data.data;
   }
-  
+
   // Handle case without success flag: { data: [...] }
   if (Array.isArray(data.data)) {
     return data.data;
   }
-  
+
   // Try common property names for users array
   const userKeys = ['users', 'data', 'items', 'result', 'docs'];
   for (const key of userKeys) {
@@ -130,7 +130,7 @@ const extractUsers = (data) => {
       return data[key];
     }
   }
-  
+
   // If no arrays found, return empty array
   return [];
 };
@@ -138,32 +138,32 @@ const extractUsers = (data) => {
 // Smart order extractor function (similar to products)
 const extractOrders = (data) => {
   console.log('Extracting orders from:', data);
-  
+
   // If it's already an array, return it
   if (Array.isArray(data)) {
     return data;
   }
-  
+
   // If it's null or undefined
   if (!data) {
     return [];
   }
-  
+
   // If it's not an object, we can't extract from it
   if (typeof data !== 'object') {
     return [];
   }
-  
+
   // Handle your specific case: { success: true, data: { orders: [...] } }
   if (data.success && data.data && Array.isArray(data.data.orders)) {
     return data.data.orders;
   }
-  
+
   // Handle case without success flag: { data: { orders: [...] } }
   if (data.data && Array.isArray(data.data.orders)) {
     return data.data.orders;
   }
-  
+
   // Try common property names for orders array
   const orderKeys = ['orders', 'data', 'items', 'result', 'docs'];
   for (const key of orderKeys) {
@@ -171,7 +171,7 @@ const extractOrders = (data) => {
       return data[key];
     }
   }
-  
+
   // If no arrays found, return empty array
   return [];
 };
@@ -182,7 +182,7 @@ const getAuthToken = () => {
 
 const makeRequest = async (endpoint, options = {}) => {
   const token = getAuthToken();
-  
+
   const config = {
     headers: {
       'Content-Type': 'application/json',
@@ -241,9 +241,9 @@ const cartAPI = {
       if (!productId || productId === 'undefined') {
         throw new Error('Invalid product ID');
       }
-      
+
       console.log('API: Updating cart item:', productId, 'quantity:', quantity);
-      
+
       const response = await API.put(`/cart/update/${productId}`, { quantity });
       return response.data;
     } catch (err) {
@@ -259,9 +259,9 @@ const cartAPI = {
       if (!productId || productId === 'undefined') {
         throw new Error('Invalid product ID');
       }
-      
+
       console.log('API: Removing cart item:', productId);
-      
+
       const response = await API.delete(`/cart/remove/${productId}`);
       return response.data;
     } catch (err) {
@@ -310,7 +310,7 @@ export const api = {
   getProducts: async (filters = {}) => {
     try {
       console.log('Fetching products with filters:', filters);
-      
+
       const params = {};
       if (filters.category && filters.category !== "all") {
         params.category = filters.category;
@@ -319,20 +319,20 @@ export const api = {
       if (filters.maxPrice) params.maxPrice = filters.maxPrice;
       if (filters.sortBy) params.sortBy = filters.sortBy;
       if (filters.search) params.search = filters.search;
-      
+
       const response = await API.get("/products", { params });
       console.log('Raw response:', response);
       console.log('Response data:', response.data);
-      
+
       const products = extractProducts(response.data);
       console.log('Extracted products:', products);
       console.log('Products count:', products.length);
-      
+
       return products;
-      
+
     } catch (err) {
       console.error("API error fetching products:", err);
-      
+
       if (err.code === 'ECONNREFUSED') {
         throw new Error('Cannot connect to server. Make sure the backend is running on port 5000.');
       } else if (err.response?.status === 404) {
@@ -370,7 +370,7 @@ export const api = {
     try {
       const idString = Array.isArray(ids) ? ids.join(',') : ids;
       const response = await API.get(`/products/by-ids?ids=${idString}`);
-      
+
       // Extract products from response
       const products = extractProducts(response.data);
       return products;
@@ -387,16 +387,16 @@ export const api = {
       const response = await API.get("/users");
       console.log('Raw users response:', response);
       console.log('Users response data:', response.data);
-      
+
       const users = extractUsers(response.data);
       console.log('Extracted users:', users);
       console.log('Users count:', users.length);
-      
+
       return users;
-      
+
     } catch (err) {
       console.error("API error fetching users:", err);
-      
+
       if (err.code === 'ECONNREFUSED') {
         throw new Error('Cannot connect to server. Make sure the backend is running on port 5000.');
       } else if (err.response?.status === 404) {
@@ -467,17 +467,17 @@ export const api = {
 
   getOrders: async (filters = {}) => {
     const queryParams = new URLSearchParams();
-    
+
     // Add filters to query params
     Object.keys(filters).forEach(key => {
       if (filters[key] && filters[key] !== 'all') {
         queryParams.append(key, filters[key]);
       }
     });
-    
+
     const queryString = queryParams.toString();
     const endpoint = `/orders/all${queryString ? `?${queryString}` : ''}`;
-    
+
     return makeRequest(endpoint);
   },
 
@@ -549,7 +549,7 @@ export const api = {
       return response.data;
     } catch (err) {
       console.error("API error fetching analytics:", err);
-      
+
       if (err.code === 'ECONNREFUSED') {
         throw new Error('Cannot connect to server. Make sure the backend is running on port 5000.');
       } else if (err.response?.status === 404) {
@@ -655,6 +655,34 @@ export const api = {
   },
 };
 
+// Reservation API
+const reservationAPI = {
+  createReservation: async (data) => {
+    try {
+      const response = await API.post('/reservations', data);
+      return response.data;
+    } catch (err) {
+      throw new Error(err.response?.data?.message || err.message || 'Failed to reserve table');
+    }
+  },
+  getAllReservations: async () => {
+    try {
+      const response = await API.get('/reservations/all');
+      return response.data;
+    } catch (err) {
+      throw new Error(err.response?.data?.message || err.message || 'Failed to fetch reservations');
+    }
+  },
+  cancelReservation: async (id) => {
+    try {
+      const response = await API.put(`/reservations/${id}/cancel`);
+      return response.data;
+    } catch (err) {
+      throw new Error(err.response?.data?.message || err.message || 'Failed to cancel reservation');
+    }
+  }
+};
+
 // Export both the main api and cartAPI separately
-export { cartAPI };
+export { cartAPI, reservationAPI };
 export default API;

@@ -187,3 +187,23 @@ exports.updateOrderStatus = async (req, res) => {
     res.status(500).json({ success: false, message: err.message });
   }
 };
+
+// Get Single Order by ID
+exports.getOrderById = async (req, res) => {
+  try {
+    const order = await Order.findById(req.params.id)
+      .populate('user', 'name email')
+      .populate('items.foodId', 'name price image category isVeg');
+
+    if (!order) {
+      return res.status(404).json({ success: false, message: 'Order not found' });
+    }
+
+    // Optional: Check ownership (if not admin)
+    // if (req.user.role !== 'admin' && order.user._id.toString() !== req.user._id.toString()) { ... }
+
+    res.json({ success: true, order });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+};
